@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: git_add" time="0.078447">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: git_commit" time="0.100819">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: push_to_git_remote" time="9.871326">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>

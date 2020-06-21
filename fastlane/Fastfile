@@ -1,0 +1,22 @@
+# 描述：
+desc '使用 ManagerLib 这个航道, 可以快速的对自己的私有库, 进行升级维护'
+
+# 使用方法 ： fastlane ManagerLib 
+
+# 本航道名：ManagerLib
+lane :ManagerLib do |options|
+
+# options:传进来的参数，后面的tag和target是对应的字段
+
+
+# 具体这个巷道上面执行哪些行为
+
+# 2. git add .
+git_add(path: ".")
+#    git commit -m 'xxx'
+git_commit(path: ".", message: "有新的改动")
+#    git push origin master
+push_to_git_remote
+
+
+end
