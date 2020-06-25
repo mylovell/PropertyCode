@@ -5,17 +5,17 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: git_add" time="0.01729">
+      <testcase classname="fastlane.lanes" name="0: git_add" time="0.01499">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: git_commit" time="0.025944">
+      <testcase classname="fastlane.lanes" name="1: git_commit" time="0.025651">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: push_to_git_remote" time="9.86217">
+      <testcase classname="fastlane.lanes" name="2: push_to_git_remote" time="4.886366">
         
       </testcase>
     

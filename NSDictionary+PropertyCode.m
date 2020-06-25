@@ -135,10 +135,10 @@ static NSMutableString *strImp;
                 
                 NSString *modelClassName = [NSString stringWithFormat:@"%@Model",[self _capitalizedStringFirst:key]];
                 code = [NSString stringWithFormat:@"@property (nonatomic ,strong) NSArray <%@ *>*%@;",modelClassName,key];
-                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"\"%@\": @\"%@\"",key,modelClassName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,modelClassName];
+                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"\"@%@\": @\"%@\"",key,modelClassName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,modelClassName];
             } else {
                 code = [NSString stringWithFormat:@"@property (nonatomic ,strong) NSArray <数组无数据待补充 *>*%@;",key];
-                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"\"%@\": @\"%@\"",key,modelName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,@"数组无数据待补充"];
+                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"\"@%@\": @\"%@\"",key,modelName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,@"数组无数据待补充"];
             }
             
         }else if ([value isKindOfClass:[NSDictionary class]]){
