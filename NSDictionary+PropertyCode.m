@@ -18,7 +18,7 @@
 
 @implementation NSDictionary (PropertyCode)
 
-- (void)createPropertyCode:(nullable NSString *)modelName
+- (void)createPropertyCode
 {
     NSMutableString *strM = [NSMutableString string];
     /*
@@ -78,8 +78,8 @@ static NSMutableString *strImp;
     
     //static NSMutableString *strImp = [NSMutableString string]; // .m文件
     NSMutableString *impl = [NSMutableString string]; // .m文件单个代码
-    __block NSString *implReplace = nil;        // .m文件单个代码，属性映射替换代码
-    __block NSString *implClassInArray = nil;   // .m文件单个代码，数组中的类型
+    __block NSString *implReplace = @"";        // .m文件单个代码，属性映射替换代码
+    __block NSString *implClassInArray = @"";   // .m文件单个代码，数组中的类型
     
     /*
         解析字典,生成对应属性代码
@@ -104,7 +104,7 @@ static NSMutableString *strImp;
             code = [NSString stringWithFormat:@"@property (nonatomic ,strong) NSString *%@;",key];
             
             if ([key isEqualToString:@"ID"]) {
-                NSString *replaceCode = @"\"ID\":@\"id\"";
+                NSString *replaceCode = @"@\"ID\":@\"id\"";
                 implReplace = implReplace.length == 0 ? replaceCode : [implReplace stringByAppendingFormat:@",\n%@",replaceCode];
             };
             
@@ -120,7 +120,7 @@ static NSMutableString *strImp;
             code = [NSString stringWithFormat:@"@property (nonatomic ,assign) NSInteger %@;",key];
             
             if ([key isEqualToString:@"ID"]) {
-                NSString *replaceCode = @"\"ID\":@\"id\"";
+                NSString *replaceCode = @"@\"ID\":@\"id\"";
                 implReplace = implReplace.length == 0 ? replaceCode : [implReplace stringByAppendingFormat:@",\n%@",replaceCode];
             };
             
@@ -130,15 +130,27 @@ static NSMutableString *strImp;
             
             // 给数组添加泛型
             if ([value count] > 0 && [[value firstObject] isKindOfClass:[NSDictionary class]]) {
+                
                 NSMutableString * subStr = [[value firstObject] createPropertyCode3:key];
                 [strM insertString:subStr atIndex:0];// 放在前面
                 
+                // 模型类名
                 NSString *modelClassName = [NSString stringWithFormat:@"%@Model",[self _capitalizedStringFirst:key]];
+                
+                // 头文件属性声明
                 code = [NSString stringWithFormat:@"@property (nonatomic ,strong) NSArray <%@ *>*%@;",modelClassName,key];
-                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"\"@%@\": @\"%@\"",key,modelClassName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,modelClassName];
-            } else {
+//                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"@\"%@\": @\"%@\"",key,modelClassName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t@\"%@\": @\"%@\"",implClassInArray,key,modelClassName];
+                
+                // 顺便保存数组元素对应的类名
+                implClassInArray = [implClassInArray stringByAppendingFormat:@"\t\t\t\t@\"%@\": @\"%@\",\n",key,modelClassName];
+                
+            } else { // 字段对应空数据
+                
                 code = [NSString stringWithFormat:@"@property (nonatomic ,strong) NSArray <数组无数据待补充 *>*%@;",key];
-                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"\"@%@\": @\"%@\"",key,modelName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,@"数组无数据待补充"];
+//                implClassInArray = implClassInArray.length == 0 ? [NSString stringWithFormat:@"@\"%@\": @\"%@\"",key,modelName] : [NSString stringWithFormat:@"%@,\n\t\t\t\t\"%@\": @\"%@\"",implClassInArray,key,@"数组无数据待补充"];
+                
+                // 顺便保存数组元素对应的类名
+                implClassInArray = [implClassInArray stringByAppendingFormat:@"\t\t\t\t@\"%@\": @\"%@\",\n",key,@"数组无数据待补充"];
             }
             
         }else if ([value isKindOfClass:[NSDictionary class]]){
@@ -172,14 +184,15 @@ static NSMutableString *strImp;
     
     NSString *mjCode = @"";
     if (implReplace.length > 0) {
-        mjCode = [NSString stringWithFormat:@"\t\t[%@ mj_setupReplacedKeyFromPropertyName:^NSDictionary *{\n\t\t\treturn @{\t\t\t\t\n\t\t\t\t%@\n\t\t\t};\n\t\t}]",modelName,implReplace];
+        mjCode = [NSString stringWithFormat:@"\n\t\t[%@ mj_setupReplacedKeyFromPropertyName:^NSDictionary *{\n\t\t\treturn @{\t\t\t\t\n\t\t\t\t%@\n\t\t\t};\n\t\t}];",modelName,implReplace];
     }
     if (implClassInArray.length > 0) {
-        mjCode = [mjCode stringByAppendingString:[NSString stringWithFormat:@"\t\t[%@ mj_setupObjectClassInArray:^NSDictionary *{\n\t\t\treturn @{\t\t\t\t\n\t\t\t\t%@\n\t\t\t};\n\t\t}]",modelName,implClassInArray]];
+        implClassInArray = [implClassInArray substringToIndex:(implClassInArray.length - 2)];// 删掉最后的逗号及/n换行符号
+        mjCode = [mjCode stringByAppendingString:[NSString stringWithFormat:@"\n\t\t[%@ mj_setupObjectClassInArray:^NSDictionary *{\n\t\t\treturn @{\n%@\n\t\t\t};\n\t\t}];",modelName,implClassInArray]];// \t\t\t\t\n\t\t\t\t
     }
     NSString *modelInitCode = @"";
     if (mjCode.length > 0) {
-        modelInitCode = [modelInitCode stringByAppendingString:[NSString stringWithFormat:@"\n- (instancetype)init {\n\tself = [super init];\n\tif (self) {\n%@;\n\t}\n\treturn self;\n}",mjCode]];
+        modelInitCode = [modelInitCode stringByAppendingString:[NSString stringWithFormat:@"\n- (instancetype)init {\n\tself = [super init];\n\tif (self) {%@\n\t}\n\treturn self;\n}",mjCode]];
     }
     if (modelInitCode.length > 0) {
         [impl appendString:modelInitCode];
